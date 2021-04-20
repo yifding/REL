@@ -9,6 +9,7 @@ from colorama import Fore, Style
 from flair.file_utils import get_from_cache
 from nltk.tokenize import RegexpTokenizer
 
+
 def fetch_model(path_or_url, cache_dir=flair.cache_root / "models/taggers"):
     model_dict = json.loads(pkg_resources.resource_string("REL.models", "models.json"))
     # load alias if it exists, else get original string
@@ -131,9 +132,7 @@ def split_in_words(inputstr):
     Same with U.S.
     """
     tokenizer = RegexpTokenizer(r"\w+")
-    return [
-        anyascii(w) for w in tokenizer.tokenize(inputstr)
-    ]  # #inputstr.split()]#
+    return [anyascii(w) for w in tokenizer.tokenize(inputstr)]  # #inputstr.split()]#
 
 
 def split_in_words_mention(inputstr):
