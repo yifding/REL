@@ -151,7 +151,6 @@ class GenTrainingTest(MentionDetectionBase):
                 ]
                 total_assigned += len(gt_sent)
 
-                # t = unidecode.unidecode(t)
                 for _, _, pos, m in gt_sent:
                     assert (
                         m == t[pos : pos + len(m)]
@@ -302,7 +301,7 @@ class GenTrainingTest(MentionDetectionBase):
                         sentences[i_sent] = [
                             sentence_words,
                             gt_sent,
-                        ]  # unidecode.unidecode(sentence_words)
+                        ]
                         i_sent += 1
                         sentence = []
                         gt_sent = []

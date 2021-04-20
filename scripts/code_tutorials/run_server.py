@@ -5,7 +5,7 @@ from REL.ner import load_flair_ner
 from REL.server import make_handler
 
 # 0. Set your project url, which is used as a reference for your datasets etc.
-base_url = "/users/vanhulsm/Desktop/projects/data/"
+base_url = ""
 wiki_version = "wiki_2019"
 
 # 1. Init model, where user can set his/her own config that will overwrite the default config.
