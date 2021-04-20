@@ -4,7 +4,6 @@ import re
 from REL.db.generic import GenericLookup
 from REL.utils import modify_uppercase_phrase, split_in_words
 
-
 class MentionDetectionBase:
     def __init__(self, base_url, wiki_version):
         self.wiki_db = GenericLookup(

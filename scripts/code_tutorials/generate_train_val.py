@@ -1,7 +1,7 @@
 from REL.generate_train_test import GenTrainingTest
 from REL.wikipedia import Wikipedia
 
-base_url = "/Users/vanhulsm/Desktop/projects/data/"
+base_url = ""
 wiki_version = "wiki_2014"
 wikipedia = Wikipedia(base_url, wiki_version)
 

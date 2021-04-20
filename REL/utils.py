@@ -4,11 +4,10 @@ import re
 import flair
 import numpy as np
 import pkg_resources
-import unidecode
+from anyascii import anyascii
 from colorama import Fore, Style
 from flair.file_utils import get_from_cache
 from nltk.tokenize import RegexpTokenizer
-
 
 def fetch_model(path_or_url, cache_dir=flair.cache_root / "models/taggers"):
     model_dict = json.loads(pkg_resources.resource_string("REL.models", "models.json"))
@@ -124,11 +123,6 @@ def modify_uppercase_phrase(s):
         return s
 
 
-# def split_in_words(inputstr):
-#     tokenizer = RegexpTokenizer(r'\w+')
-#     return [unidecode.unidecode(w) for w in tokenizer.tokenize(inputstr)]
-
-
 def split_in_words(inputstr):
     """
     This regexp also splits 'AL-NAHAR', which should be a single word
@@ -138,7 +132,7 @@ def split_in_words(inputstr):
     """
     tokenizer = RegexpTokenizer(r"\w+")
     return [
-        unidecode.unidecode(w) for w in tokenizer.tokenize(inputstr)
+        anyascii(w) for w in tokenizer.tokenize(inputstr)
     ]  # #inputstr.split()]#
 
 
@@ -150,7 +144,7 @@ def split_in_words_mention(inputstr):
     Same with U.S.
     """
     tokenizer = RegexpTokenizer(r"\w+")
-    return [unidecode.unidecode(w) for w in inputstr.split()]  # #inputstr.split()]#
+    return [anyascii(w) for w in inputstr.split()]  # #inputstr.split()]#
 
 
 def correct_type(args, data):
