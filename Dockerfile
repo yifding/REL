@@ -13,10 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # install pip and REL
 RUN conda install -y pip
-RUN git clone "https://github.com/informagi/REL" && \
-    cd REL && \
-    pip install -e . && \
-    cd ..
+
+COPY . REL
+RUN cd REL && \
+    pip install -e .
 
 # ????
 RUN chmod -R 777 /workspace && chown -R root:root /workspace

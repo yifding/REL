@@ -22,23 +22,20 @@ For EL, the `spans` field needs to be set to an empty list. For ED, however, the
 ```python
 import requests
 
-IP_ADDRESS = "https://rel.cs.ru.nl/api"
+API_URL = "https://rel.cs.ru.nl/api"
 text_doc = "If you're going to try, go all the way - Charles Bukowski"
 
 # Example EL.
-document = {
+el_result = requests.post(API_URL, json={
     "text": text_doc,
     "spans": []
-}
+}).json()
 
 # Example ED.
-document = {
+ed_result = requests.post(API_URL, json={
     "text": text_doc,
     "spans": [(41, 16)]
-}
-
-
-API_result = requests.post("{}".format(IP_ADDRESS), json=document).json()
+}).json()
 ```
 
 # Setup package
@@ -46,6 +43,10 @@ This section describes how to deploy REL on a local machine and setup the API. I
 
 ## Installation using Docker
 First, download the necessary data; you need the generic files and a Wikipedia version (2014 or 2019) (see [Download](#download)). Extract them anywhere, we will bind the directories to the Docker container as volumes.
+
+```bash
+./scripts/download_data.sh ./data generic wiki_2019
+```
 
 ### Prebuilt images
 To use our prebuilt default image, run:
@@ -57,12 +58,11 @@ To run the API locally:
 ```bash
 # Map container port 5555 to local port 5555, and use Wikipedia 2019
 # Also map the generic and wiki_2019 folders to directories in Docker container
-docker run 
-    -p 5555:5555 
-    -v /path/to/generic:/workspace/generic 
-    -v /path/to/wiki_2019:/workspace/wiki_2019 
-    --rm -it informagi/rel
-    python -m REL.server --bind 0.0.0.0 --port 5555 /workspace wiki_2019
+docker run \
+    -p 5555:5555 \
+    -v $PWD/data/:/workspace/data \
+    --rm -it informagi/rel \
+    python -m REL.server --bind 0.0.0.0 --port 5555 /workspace/data wiki_2019
 ```
 
 Now you can make requests to `http://localhost:5555` (or another port if you
@@ -74,7 +74,7 @@ To build the Docker image yourself, run:
 # Clone the repository
 git clone https://github.com/informagi/REL && cd REL
 # Build the Docker image
-docker build - -t informagi/rel < Dockerfile
+docker build . -t informagi/rel
 ```
 
 To run the API locally, use the same commands as mentioned in the previous section.
@@ -91,15 +91,11 @@ The files used for this project can be divided into three categories. The first 
 the ED model. The second and third category are Wikipedia corpus related files, which in our case either originate from a 2014 or 
 2019 corpus. Alternatively, users may use their own corpus, for which we refer to the tutorials.
 
-[Download generic files](http://gem.cs.ru.nl/generic.tar.gz)
-
-[Download Wikipedia corpus (2014)](http://gem.cs.ru.nl/wiki_2014.tar.gz)
-
-[Download ED model 2014](http://gem.cs.ru.nl/ed-wiki-2014.tar.gz)
-
-[Download Wikipedia corpus (2019)](http://gem.cs.ru.nl/wiki_2019.tar.gz)
-
-[Download ED model 2019](http://gem.cs.ru.nl/ed-wiki-2019.tar.gz)
+* [Download generic files](http://gem.cs.ru.nl/generic.tar.gz)
+* [Download Wikipedia corpus (2014)](http://gem.cs.ru.nl/wiki_2014.tar.gz)
+* [Download ED model 2014](http://gem.cs.ru.nl/ed-wiki-2014.tar.gz)
+* [Download Wikipedia corpus (2019)](http://gem.cs.ru.nl/wiki_2019.tar.gz)
+* [Download ED model 2019](http://gem.cs.ru.nl/ed-wiki-2019.tar.gz)
 
 ## Tutorials
 To promote usage of this package we developed various tutorials. If you simply want to use our API, then 
