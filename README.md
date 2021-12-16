@@ -15,7 +15,7 @@ REL comes in two variants for identifying entity mentions:
 
 - **Case-sensitive**: This setup is suitable for properly written texts (e.g., news articles) and is the default setup of the REL package. In this setup, we use the `ner-fast` FLAIR model, which is case-sensitive. The results reported in the REL paper are based on this model.
 
-- **Case-insensitive**: This setup is well suited for noisy texts (e.g., queries), where entity mentions can be (often) lowercased. In this setup, we use the `ner-fast-with-lowercase` model, which is the `ner-fast` FLAIR model trained on randomly cased and uncased text. This variant is the default setup of our API.
+- **Case-insensitive**: This setup is well suited for noisy texts (e.g., queries), where entity mentions can be (often) lowercased. In this setup, we use the `ner-fast-with-lowercase` model, which is the `ner-fast` FLAIR architucture trained on randomly cased and uncased text. This variant is the default setup of our API.
 
 Below is a comparison of these two models on [CoNLL-2003 NER](https://www.clips.uantwerpen.be/conll2003/ner/) dataset.
 
