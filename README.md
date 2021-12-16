@@ -9,6 +9,28 @@ REL utilizes *English* Wikipedia as a knowledge base and can be used for the fol
 - **Entity linking (EL)**: Given a text, the system outputs a list of mention-entity pairs, where each mention is a n-gram from text and each entity is an entity in the knowledge base.
 - **Entity Disambiguation (ED)**: Given a text and a list of mentions, the system assigns an entity (or NIL) to each mention.
 
+# REL variants
+
+REL comes in two variants for identifying entity mentions:
+
+- **Case-sensitive**: This setup is suitable for properly written texts (e.g., news articles) and is the default setup of the REL package. In this setup, we use the `ner-fast` FLAIR model, which is case-sensitive. The results reported in the REL paper are based on this model.
+
+- **Case-insensitive**: This setup is well suited for noisy texts (e.g., queries), where entity mentions can be (often) lowercased. In this setup, we use the `ner-fast-with-lowercase` model, which is the `ner-fast` FLAIR model trained on randomly cased and uncased text. This variant is the default setup of our API.
+
+Below is a comparison of these two models on [CoNLL-2003 NER](https://www.clips.uantwerpen.be/conll2003/ner/) dataset.
+
+| Model  | CoNLL-2003 test | F1 |
+| ------ | --------------- | -- |
+| `ner-fast`  |  original | 92.78 |
+| `ner-fast`  |  lower-cased | 58.42 |
+| `ner-fast`  |  random | 70.64 |
+| `ner-fast-with-lowercase`  |  original | 91.53|
+| `ner-fast-with-lowercase`  |  lower-cased | 89.73 |
+| `ner-fast-with-lowercase`  |  random | 89.66 |
+
+See [Notes on using custom models](https://github.com/informagi/REL/tree/master/tutorials/07_custom_models.md) for further information on switiching between these variants.
+
+
 # Calling our API
 
 Users may access our API by using the example script below. 
