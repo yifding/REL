@@ -9,13 +9,8 @@ REL utilizes *English* Wikipedia as a knowledge base and can be used for the fol
 - **Entity linking (EL)**: Given a text, the system outputs a list of mention-entity pairs, where each mention is a n-gram from text and each entity is an entity in the knowledge base.
 - **Entity Disambiguation (ED)**: Given a text and a list of mentions, the system assigns an entity (or NIL) to each mention.
 
-# Setup API
-This section elaborates on how a user may utilize our API. Steps include obtaining an API key and querying our API. 
+# Calling our API
 
-### Obtaining a key
-At the moment we do not require obtaining a key; please continue to the next step.
-
-### Querying our API
 Users may access our API by using the example script below. 
 For EL, the `spans` field needs to be set to an empty list. For ED, however, the `spans` field should consist of a list of tuples, where each tuple refers to the start position and length of a mention.
 
@@ -41,7 +36,7 @@ ed_result = requests.post(API_URL, json={
 # Setup package
 This section describes how to deploy REL on a local machine and setup the API. If you want to do anything more than simply running our API locally, you can skip the Docker steps and continue with installation from source.
 
-## Installation using Docker
+## Option 1: Installation using Docker
 First, download the necessary data; you need the generic files and a Wikipedia version (2014 or 2019) (see [Download](#download)). Extract them anywhere, we will bind the directories to the Docker container as volumes.
 
 ```bash
@@ -68,7 +63,7 @@ docker run \
 Now you can make requests to `http://localhost:5555` (or another port if you
 use a different mapping) in the format described in the example above.
 
-### Build your own
+### Build your own Docker image
 To build the Docker image yourself, run:
 ```bash
 # Clone the repository
@@ -79,7 +74,7 @@ docker build . -t informagi/rel
 
 To run the API locally, use the same commands as mentioned in the previous section.
 
-## Installation from source
+##  Option 2: Installation from source code
 Run the following command in a terminal to install REL:
 ```
 pip install git+https://github.com/informagi/REL
@@ -87,9 +82,7 @@ pip install git+https://github.com/informagi/REL
 You will also need to manually download the files described in the next section.
 
 ## Download
-The files used for this project can be divided into three categories. The first is a generic set of documents and embeddings that was used throughout the project. This folder includes the GloVe embeddings used by Le et al. and the unprocessed datasets that were used to train
-the ED model. The second and third category are Wikipedia corpus related files, which in our case either originate from a 2014 or 
-2019 corpus. Alternatively, users may use their own corpus, for which we refer to the tutorials.
+The files used for this project can be divided into three categories. The first is a generic set of documents and embeddings that was used throughout the project. This folder includes the GloVe embeddings and the unprocessed datasets that were used to train the ED model. The second and third category are Wikipedia corpus related files, which in our case either originate from a 2014 or 2019 corpus. Alternatively, users may use their own corpus, for which we refer to the tutorials.
 
 * [Download generic files](http://gem.cs.ru.nl/generic.tar.gz)
 * [Download Wikipedia corpus (2014)](http://gem.cs.ru.nl/wiki_2014.tar.gz)
