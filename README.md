@@ -140,7 +140,7 @@ We measured the efficiency of REL on a per-document basis. We ran our API with 5
 
 As our package has changed overtime, we refer to one of our [earlier commits](https://github.com/informagi/REL/tree/a0a93487ecc640a72f33ffe015a7a34dff8f054f) for reproducing the results in the table above. To reproduce the results above, perform the following steps:
 1. Start the server. As can be seen in `server.py`, we added [checkpoints in our server calls](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/REL/server.py#L82) to measure time taken per call.
-3. Once the server is started, run the [efficiency test](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/scripts/efficiency_test.py). Do not forget to update the `base_url` in the respective script.
+3. Once the server is started, run the [efficiency test](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/scripts/efficiency_test.py). Do not forget to update the `base_url` in the respective script to the directory where all data is stored (see our [tutorial on how to get started](https://github.com/informagi/REL/blob/master/tutorials/01_How_to_get_started.md)
 4. Finally, process the [efficiency results](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/scripts/efficiency_results.py).
 
 # Cite
