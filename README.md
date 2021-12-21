@@ -130,6 +130,19 @@ The remainder of the tutorials are optional and for users who wish to e.g. train
 6. [REL as systemd service](https://github.com/informagi/REL/tree/master/tutorials/06_systemd_instructions.md)
 7. [Notes on using custom models](https://github.com/informagi/REL/tree/master/tutorials/07_custom_models.md)
 
+# Efficiency of REL
+We measured the efficiency of REL on a per-document basis. We ran our API with 50 documents from AIDA-B with > 200 words, which is 323 (± 105) words and 42 (± 19) mentions per document. The results are added to the table below.
+
+| Model  | Time MD | Time ED |
+| ------ | --------------- | -- |
+| With GPU  |  0.44±0.22 | 0.24±0.08 |
+| Without GPU  |  2.41±1.24| 0.18±0.09|
+
+As our package has changed overtime, we refer to one of our [earlier commits](https://github.com/informagi/REL/tree/a0a93487ecc640a72f33ffe015a7a34dff8f054f) for reproducing the results in the table above. To reproduce the results above, perform the following steps:
+1. Start the server. As can be seen in `server.py`, we added [checkpoints in our server calls](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/REL/server.py#L82) to measure time taken per call.
+3. Once the server is started, run the [efficiency test](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/scripts/efficiency_test.py). Do not forget to update the `base_url` to specify where the data is located in the filesystem. This directory refers to where all project-related data is stored (see our [tutorial on how to get started](https://github.com/informagi/REL/blob/master/tutorials/01_How_to_get_started.md)
+4. Finally, process the [efficiency results](https://github.com/informagi/REL/blob/a0a93487ecc640a72f33ffe015a7a34dff8f054f/scripts/efficiency_results.py).
+
 # Cite
 If you are using REL, please cite the following paper:
 
