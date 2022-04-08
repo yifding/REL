@@ -36,7 +36,10 @@ def load_tsv(file, key='', mode='char'):
                 assert 0 <= token_start <= token_end < len(tokens)
                 # **YD** sentence[char_start: char_end] == mention
                 # **YD** ' '.join(tokens[token_start: token_end+1]) == mention ## ignoring the ',', '.' without space cases
-                start = len(' '.join(tokens[:token_start])) + 1
+                if token_start == 0:
+                    start = 0
+                else:
+                    start = len(' '.join(tokens[:token_start])) + 1
                 end = len(' '.join(tokens[:token_end + 1]))
                 entity_mention = sentence[start: end]
 
@@ -47,7 +50,7 @@ def load_tsv(file, key='', mode='char'):
 
             char_doc_name2instance[doc_name] = {
                 'doc_name': doc_name,
-                'tokens': tokens,
+                # 'tokens': tokens,
                 'sentence': sentence,
                 'entities': {
                     "starts": starts,
@@ -123,7 +126,6 @@ def load_tsv(file, key='', mode='char'):
             }
         }
         return instance
-
 
     doc_name2dataset = dict()
     doc_name = ''
@@ -283,6 +285,65 @@ def process_pred(doc_name2inference, doc_name2instance):
     return re_doc_name2inference
 
 
+def process_pred2token(doc_name2inference, doc_name2instance):
+    re_doc_name2inference = dict()
+
+    for doc_name, inference in doc_name2inference.items():
+        assert doc_name in doc_name2instance
+        tokens = doc_name2instance[doc_name]['tokens']
+        sentence = ' '.join(tokens)
+
+        instance_starts = []
+        instance_ends = []
+        instance_entity_mentions = []
+        instance_entity_names = []
+        instance_entity_ner_labels = []
+
+        # inference = [
+        # [0, 5, 'David', 'David', 0.12854342331601593, 0.9987859129905701, 'PER', 0, 0, 0],
+        # [10, 8, 'Victoria_(Australia)', 'Victoria', 0.12246889451824833, 0.998676598072052, 'PER', 0, 0, 0]
+        # ]
+
+        str_index2token_index = dict()
+        token_index = 0
+        for str_index, st in enumerate(sentence):
+            str_index2token_index[str_index] = token_index
+            if st == ' ':
+                token_index += 1
+
+        for inference_ele in inference:
+            str_start_index = inference_ele[0]
+            str_end_index = inference_ele[0] + inference_ele[1]
+            pred_entity = inference_ele[2]
+            pred_mention = inference_ele[3]
+            pred_ner_label = inference_ele[6] if len(inference_ele) >= 5 else 'NULL'
+
+            if str_start_index not in str_index2token_index or str_end_index not in str_index2token_index:
+                continue
+            token_start_index = str_index2token_index[str_start_index]
+            token_end_index = str_index2token_index[str_end_index]
+
+            instance_starts.append(token_start_index)
+            instance_ends.append(token_end_index)
+            instance_entity_mentions.append(pred_mention)
+            instance_entity_names.append(pred_entity)
+            instance_entity_ner_labels.append(pred_ner_label)
+
+        instance = {
+                'doc_name': doc_name,
+                'tokens': tokens,
+                'entities': {
+                    "starts": instance_starts,
+                    "ends": instance_ends,
+                    "entity_ner_labels": instance_entity_ner_labels,
+                    "entity_mentions": instance_entity_mentions,
+                    "entity_names": instance_entity_names,
+                }
+        }
+        re_doc_name2inference[doc_name] = instance
+    return re_doc_name2inference
+
+
 def evaluate_and_analysis(doc_name2inference, doc_name2instance):
     def dev_by_zero(a, b):
         if b == 0:
@@ -334,15 +395,26 @@ def evaluate_and_analysis(doc_name2inference, doc_name2instance):
     print(f'correct_entity_disambiguation_by_ner: {correct_entity_disambiguation_by_ner}')
     print(f'precision: {precision}, recall: {recall}, f1: {f1}')
 
+    out_dict = {
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'num_true_positive': num_true_positive,
+        'num_pred_instance': num_pred_instance,
+        'num_gt_instance': num_gt_instance,
+        'incorrect_entity_disambiguation_by_ner': incorrect_entity_disambiguation_by_ner,
+        'correct_entity_disambiguation_by_ner': correct_entity_disambiguation_by_ner,
+    }
+    return out_dict
 
-def main():
+
+def main(args):
     # 1. obtain dataset
     # input_file = '/nfs/yding4/EL_project/dataset/KORE50/AIDA.tsv'
     # input_file = '/nfs/yding4/EL_project/dataset/AIDA-CONLL/AIDA-YAGO2-dataset.tsv'
     # input_file = '/nfs/yding4/EL_project/dataset/luke/msnbc.conll'
     # input_file = '/nfs/yding4/EL_project/dataset/luke/aquaint.conll'
-    input_format = 'tsv'
-    mode = 'token'
+
     # there are two formats of dataset,
     # 1) .tsv: token \t ner-label('B' or 'I') \t mention \t entity \n or token \n
     # 2) .nt or .ttl
@@ -350,41 +422,87 @@ def main():
     # doc_name2instance = load_ttl_oke_2015()
     # doc_name2instance = load_ttl_oke_2016()
     # doc_name2instance = load_ttl_n3('/nfs/yding4/EL_project/dataset/n3-collection/Reuters-128.ttl')
-    doc_name2instance = load_ttl_n3('/nfs/yding4/EL_project/dataset/n3-collection/RSS-500.ttl')
 
-    # doc_name2instance = load_tsv(input_file, 'testb')
-    # test on the first document
-    # doc_name2instance = dict(list(doc_name2instance.items())[:1])
-    # print(doc_name2instance)
+    if args.mode == 'tsv':
+        # doc_name2instance = load_tsv(args.dataset_file, key=args.tsv_key, mode='token')
+        doc_name2instance = load_tsv(args.dataset_file, key=args.tsv_key)
+    elif args.mode == 'oke_2015':
+        doc_name2instance = load_ttl_oke_2015(args.dataset_file)
+    elif args.mode == 'oke_2016':
+        doc_name2instance = load_ttl_oke_2016(args.dataset_file)
+    elif args.mode == 'n3':
+        doc_name2instance = load_ttl_n3(args.dataset_file)
+    else:
+        raise ValueError('unknown mode!')
 
     # 2. obtain the prediction
     doc_name2inference = dict()
     for doc_index, (doc_name, instance) in enumerate(tqdm(doc_name2instance.items())):
         sentence = instance['sentence'] if 'sentence' in instance else ' '.join(instance['tokens'])
-        # sentence = "David and Victoria named their children Brooklyn, Romeo, Cruz, and Harper Seven."
-        # sentence = "David and Victoria named their children Brooklyn , Romeo , Cruz , and Harper Seven ."
-        # sentence = "David and Victoria added spice to their marriage."
 
         el_result = requests.post(API_URL, json={
             "text": sentence,
             # "spans": []
             "spans": []
         }).json()
-        # print('gt:', instance['entities'])
-        # print('el_result:', el_result)
 
         assert doc_name not in doc_name2inference
         doc_name2inference[doc_name] = el_result
 
-    # with open('test.json', 'w') as writer:
-    #     writer.write(json.dumps(doc_name2inference, indent=4))
-
     # 3. process the prediction
     process_doc_name2inference = process_pred(doc_name2inference, doc_name2instance)
+    # process_doc_name2inference = process_pred2token(doc_name2inference, doc_name2instance)
 
     # 4. evaluate and analysis the results.
-    evaluate_and_analysis(process_doc_name2inference, doc_name2instance)
+    out_dict = evaluate_and_analysis(process_doc_name2inference, doc_name2instance)
+
+    with open(os.path.join(args.output_dir, 'evaluation.json'), 'w') as writer:
+        writer.write(json.dumps(out_dict, indent=4))
+    with open(os.path.join(args.output_dir, 'inference.json'), 'w') as writer:
+        writer.write(json.dumps(process_doc_name2inference, indent=4))
+    with open(os.path.join(args.output_dir, 'processed_gt_dataset.json'), 'w') as writer:
+        writer.write(json.dumps(doc_name2instance, indent=4))
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='evaluate and analysis the entity linking from tcp communication like REL and end2end_neural_el',
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--dataset_file",
+        help="the dataset file ",
+        default="/nfs/yding4/REL/data/dataset/KORE50/AIDA.tsv",
+        # default="/nfs/yding4/REL/data/dataset/oke-challenge/evaluation-data/task1/evaluation-dataset-task1.ttl",
+        type=str,
+    )
+    parser.add_argument(
+        "--mode",
+        help="mode/type of evaluation dataset file",
+        default="tsv",
+        choices=['tsv', 'oke_2015', 'oke_2016', 'n3'],
+        type=str,
+    )
+    parser.add_argument(
+        "--tsv_key",
+        help="used for aida-testa and aida-testb; required showing up in the file for mode=tsv",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--output_dir",
+        help="the output directory to store evaluation and analysis results of entity linking",
+        default="result",
+        type=str,
+    )
+
+    args = parser.parse_args()
+    print(args)
+    os.makedirs(args.output_dir, exist_ok=True)
+    assert os.path.isfile(args.dataset_file)
+    return args
 
 
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(args)
