@@ -251,6 +251,7 @@ def process_pred(doc_name2inference, doc_name2instance):
         instance_entity_mentions = []
         instance_entity_names = []
         instance_entity_ner_labels = []
+        instance_candidate_entities = []
 
         # inference = [
         # [0, 5, 'David', 'David', 0.12854342331601593, 0.9987859129905701, 'PER', 0, 0, 0],
@@ -262,13 +263,15 @@ def process_pred(doc_name2inference, doc_name2instance):
             char_end_index = inference_ele[0] + inference_ele[1]
             pred_entity = inference_ele[2]
             pred_mention = inference_ele[3]
-            pred_ner_label = inference_ele[6] if len(inference_ele) >= 5 else 'NULL'
+            pred_ner_label = inference_ele[6] if len(inference_ele) >= 7 else 'NULL'
+            pred_candidate_entities = inference_ele[7] if len(inference_ele) >= 8 else []
 
             instance_starts.append(char_start_index)
             instance_ends.append(char_end_index)
             instance_entity_mentions.append(pred_mention)
             instance_entity_names.append(pred_entity)
             instance_entity_ner_labels.append(pred_ner_label)
+            instance_candidate_entities.append(pred_candidate_entities)
 
         instance = {
                 'doc_name': doc_name,
@@ -279,6 +282,7 @@ def process_pred(doc_name2inference, doc_name2instance):
                     "entity_ner_labels": instance_entity_ner_labels,
                     "entity_mentions": instance_entity_mentions,
                     "entity_names": instance_entity_names,
+                    "entity_candidates": instance_candidate_entities,
                 }
         }
         re_doc_name2inference[doc_name] = instance
