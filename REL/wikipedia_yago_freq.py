@@ -362,3 +362,59 @@ class WikipediaYagoFreq:
             disambiguation_ent_errors,
             [len(start_entities), len(end_entities), len(end_mentions)],
         )
+
+    def extract_text_and_hyp(self, line):
+        """
+        Extracts hyperlinks from given Wikipedia document to obtain mention/entity counts.
+
+        :return: list of mentions/wiki Ids and their respective counts (plus some statistics).
+        """
+
+        line = unquote(line)
+        list_hyp = []
+        num_mentions = 0
+        start_entities = [m.start() for m in re.finditer('<a href="', line)]
+        end_entities = [m.start() for m in re.finditer('">', line)]
+        end_mentions = [m.start() for m in re.finditer("</a>", line)]
+
+        disambiguation_ent_errors = 0
+        start_entity = line.find('<a href="')
+
+        while start_entity >= 0:
+            line = line[start_entity + len('<a href="') :]
+            end_entity = line.find('">')
+            end_mention = line.find("</a>")
+            mention = line[end_entity + len('">') : end_mention]
+
+            if (
+                ("Wikipedia" not in mention)
+                and ("wikipedia" not in mention)
+                and (len(mention) >= 1)
+            ):
+                # Valid mention
+                entity = line[0:end_entity]
+                find_wikt = entity.find("wikt:")
+                entity = entity[len("wikt:") :] if find_wikt == 0 else entity
+                entity = self.wikipedia.preprocess_ent_name(entity)
+
+                if entity.find("List of ") != 0:
+                    if "#" not in entity:
+                        ent_wiki_id = self.wikipedia.ent_wiki_id_from_name(entity)
+                        if ent_wiki_id == -1:
+                            disambiguation_ent_errors += 1
+                        else:
+                            num_mentions += 1
+                            list_hyp.append(
+                                {
+                                    "mention": mention,
+                                    "ent_wikiid": ent_wiki_id,
+                                    "cnt": num_mentions,
+                                }
+                            )
+            # find new entity
+            start_entity = line.find('<a href="')
+        return (
+            list_hyp,
+            disambiguation_ent_errors,
+            [len(start_entities), len(end_entities), len(end_mentions)],
+        )

@@ -653,6 +653,7 @@ class EntityDisambiguation:
                                 "prediction": entity[0],
                                 "candidates": entity[2],
                                 "conf_ed": entity[4],
+                                "masks": list([str(x) for x in entity[5]]),
                                 "scores": list([str(x) for x in entity[3]]),
                             }
                         )
