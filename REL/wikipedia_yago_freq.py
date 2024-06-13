@@ -418,3 +418,105 @@ class WikipediaYagoFreq:
             disambiguation_ent_errors,
             [len(start_entities), len(end_entities), len(end_mentions)],
         )
+
+
+    def __extract_text(self, line):
+        line = unquote(line)
+        
+        hyp_anchor = '<a href="'
+        hyp_mid = '">'
+        hyp_end = '</a>'
+
+        start_entity = line.find(hyp_anchor)
+
+        text = ''
+
+        while start_entity >= 0:
+            text += line[: start_entity]
+            end_entity = line.find(hyp_mid)
+            end_mention = line.find(hyp_end)
+            mention = line[end_entity + len(hyp_mid): end_mention]
+            entity = line[start_entity + len(hyp_anchor): end_entity]
+
+
+            text += mention
+            line = line[end_mention + len(hyp_end):]
+
+            start_entity = line.find(hyp_anchor)
+
+        if len(line) > 0:
+            text += line
+        
+        return text
+
+
+    def extract_entity_description(self):
+        self.entity_id2description = dict()
+        num_lines = 0
+
+        print("Collecting Wikipedia entity description")
+
+        last_processed_id = -1
+        id = -1
+        entity = ''
+        exist_id_found = False
+
+        wiki_anchor_files = os.listdir(
+            os.path.join(self.base_url, self.wiki_version, "basic_data/anchor_files/")
+        )
+        for wiki_anchor in wiki_anchor_files:
+            wiki_file = os.path.join(
+                self.base_url,
+                self.wiki_version,
+                "basic_data/anchor_files/",
+                wiki_anchor,
+            )
+
+            cur_text = ''
+            with open(wiki_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    num_lines += 1
+
+                    if num_lines % 5000000 == 0:
+                        print(
+                            "Processed {} lines".format(
+                                num_lines
+                            )
+                        )
+
+                    if '<doc id="' in line:
+                        if not exist_id_found:
+                            if id != -1 and id not in self.entity_id2description:
+                                self.entity_id2description[id] = cur_text
+                        
+                        cur_text = ''
+
+                        id = int(line[line.find("id") + 4 : line.find("url") - 2])
+                        entity_start_anchor = 'title="'
+                        entity_end_anchor = '">'
+                        # entity = line[line.find(entity_start_anchor) + len(entity_start_anchor): line.find(entity_end_anchor)]
+                        # tmp_id = self.wikipedia.ent_wiki_id_from_name(entity)
+
+                        # if entity != '' and tmp_id  != -1 and tmp_id != id:
+                        #     id = self.wikipedia.ent_wiki_id_from_name(entity)
+
+                        if id <= last_processed_id:
+                            exist_id_found = True
+                            continue
+                        else:
+                            exist_id_found = False
+                            last_processed_id = id
+                    
+                    else:
+                        if not exist_id_found:
+                            text = self.__extract_text(line)
+                            cur_text += text
+
+            if cur_text != '':
+                if not exist_id_found:
+                    if id not in self.entity_id2description:
+                                self.entity_id2description[id] = cur_text
+                        
+                cur_text = ''
+
+                    
